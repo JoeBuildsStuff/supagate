@@ -22,13 +22,14 @@ export default async function LoginPage({
     <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">SupaGate</CardTitle>
           <CardDescription className="text-center">
             Get access to your account or create one
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
 
+          {/* social buttons */}
           <div className="grid grid-cols-2 gap-4">
             <Button 
               variant="outline" 
@@ -60,6 +61,7 @@ export default async function LoginPage({
             </Button>
           </div>
 
+          {/* or */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -71,6 +73,7 @@ export default async function LoginPage({
             </div>
           </div>
 
+          {/* email form */}  
           <form>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -88,7 +91,7 @@ export default async function LoginPage({
                 <Button 
                   type="submit" 
                   variant="secondary"
-                  className="w-full"
+                  className="flex-1"
                   formAction={signInWithMagicLink}
                 >
                   Send Magic Link
@@ -96,7 +99,7 @@ export default async function LoginPage({
                 <Button 
                   type="submit" 
                   variant="default"
-                  className="w-full"
+                  className="flex-1"
                   formAction={signInWithOTP}
                 >
                   Send OTP Code
@@ -106,10 +109,10 @@ export default async function LoginPage({
           </form>
 
         </CardContent>
-        <CardFooter>
         {error && message && (
+        <CardFooter>
             <Alert variant={"default"} className="bg-secondary/50">
-              <AlertCircle className="h-4 w-4 -my-[.2rem]" />
+              <AlertCircle className="h-4 w-4" />
               <AlertTitle className="text-sm">{error === "rate_limit" ? "Slow down there!" : "Uh oh!"}</AlertTitle>
               <AlertDescription className="pt-2 space-y-2">
                 {typeof message === 'string' ? <span>{decodeURIComponent(message)}</span> : 'An unexpected error occurred.'}
@@ -121,8 +124,8 @@ export default async function LoginPage({
                 )}
               </AlertDescription>
             </Alert>
-          )}
         </CardFooter>
+              )}
       </Card>
     </div>
   );
