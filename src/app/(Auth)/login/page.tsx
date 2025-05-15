@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Key } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 export default async function LoginPage({
   searchParams,
