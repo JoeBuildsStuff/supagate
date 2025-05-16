@@ -11,23 +11,23 @@ export const metadata: Metadata = {
 const sidebarNavItems = [
   {
     title: "Profile",
-    href: "/workspace/forms",
+    href: "/workspace/profile",
   },
   {
     title: "Account",
-    href: "/workspace/forms/account",
+    href: "/workspace/profile/account",
   },
   {
     title: "Appearance",
-    href: "/workspace/forms/appearance",
+    href: "/workspace/profile/appearance",
   },
   {
     title: "Notifications",
-    href: "/workspace/forms/notifications",
+    href: "/workspace/profile/notifications",
   },
   {
     title: "Display",
-    href: "/workspace/forms/display",
+    href: "/workspace/profile/display",
   },
 ]
 
@@ -46,7 +46,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         </div>
         <Separator className="my-6" />
         <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-          <aside className="-mx-4 lg:w-1/5">
+          <aside className="lg:w-1/5">
             <SidebarNav items={sidebarNavItems} />
           </aside>
           <div className="flex-1 lg:max-w-2xl">{children}</div>
