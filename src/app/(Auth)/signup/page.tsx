@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { signInWithMagicLink, signInWithGoogle, signInWithGithub, signInWithOTP } from '@/actions/auth';
+import { signInWithGoogle, signInWithGithub, signInWithOTP, signInWithMagicLink } from '@/actions/auth'; // Assuming you'll create signUpWithPassword
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Mail } from "lucide-react";
 
-export default async function LoginPage({
+export default async function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -25,9 +25,9 @@ export default async function LoginPage({
 
         {/* card header */}
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account
+            Enter your details below to create your account
           </CardDescription>
         </CardHeader>
 
@@ -40,9 +40,9 @@ export default async function LoginPage({
             <Button 
               variant="outline" 
               className="w-full"
-              onClick={signInWithGoogle}
+              onClick={signInWithGoogle} // Assuming same action for social signup
             >
-              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -55,7 +55,7 @@ export default async function LoginPage({
             <Button 
               variant="outline" 
               className="w-full"
-              onClick={signInWithGithub}
+              onClick={signInWithGithub} // Assuming same action for social signup
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -81,9 +81,9 @@ export default async function LoginPage({
             </div>
           </div>
 
-          {/* email form */}  
-          <form >
-            <div className="space-y-4 mb-6 ">
+          {/* email and password form */}  
+          <form>
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input 
@@ -94,9 +94,8 @@ export default async function LoginPage({
                   required 
                 />
               </div>
-
-              {/* passwordless option buttons */}
-              <div className="flex flex-row gap-2 w-full">
+ {/* passwordless option buttons */}
+ <div className="flex flex-row gap-2 w-full">
                 <Button 
                   type="submit" 
                   variant="default"
@@ -117,15 +116,15 @@ export default async function LoginPage({
             </div>
           </form>
 
-        {/* passwordless option alert */}
+                  {/* passwordless option alert */}
         <Alert variant={"default"} className="bg-secondary/50 border-none">
           <Mail className="" />
-          <AlertTitle className="text-sm">Passwordless Option</AlertTitle>
+          <AlertTitle className="text-sm">Password Option</AlertTitle>
           <AlertDescription className="pt-2 space-y-2">
           <span>
             We recomend selecting a passwordless option. If you insist on using a password, {' '}
             <Link
-              href="/login/password"
+              href="/signup/password"
               className="text-primary underline hover:text-primary/80 transition-colors"
             >
               continue here.
@@ -134,11 +133,11 @@ export default async function LoginPage({
           </AlertDescription>
         </Alert>
 
-        {/* no account sign up link */}
-        <div className="text-center text-sm text-muted-foreground flex flex-row items-center justify-center gap-2">
-          No account? {' '}
-          <Link href="/signup" className="text-primary underline hover:text-primary/80 transition-colors">
-            Sign up
+        {/* already have an account link */}
+        <div className="text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link href="/login" className="text-primary underline hover:text-primary/80 transition-colors">
+            Sign in
           </Link>
         </div>
         </CardContent>
@@ -146,7 +145,7 @@ export default async function LoginPage({
         {/* error alert */}
         {error && message && (
         <CardFooter>
-            <Alert variant={"default"} className="bg-secondary/50">
+            <Alert variant={"destructive"} className=""> {/* Changed to destructive for signup errors initially */}
               <AlertCircle className="h-4 w-4" />
               <AlertTitle className="text-sm">{error === "rate_limit" ? "Slow down there!" : "Uh oh!"}</AlertTitle>
               <AlertDescription className="pt-2 space-y-2">

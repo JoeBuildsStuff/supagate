@@ -11,6 +11,12 @@ const authSchema = z.object({
   email: z.string().email(),
 })
 
+// Add a schema for email and password
+const authWithPasswordSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1, { message: "Password is required" }),
+})
+
 // Replace login and signup with a single magic link function
 export async function signInWithMagicLink(formData: FormData) {
   'use server'
@@ -127,4 +133,69 @@ export async function signInWithOTP(formData: FormData) {
 
   revalidatePath('/', 'layout')
   redirect(`/verify-otp?email=${result.data.email}`)
+}
+
+export async function signInWithPassword(formData: FormData) {
+  'use server'
+
+  const supabase = await createClient()
+
+  const result = authWithPasswordSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+
+  if (!result.success) {
+    console.log("validation-error", result.error)
+    // Construct a more user-friendly error message
+    const errorMessages = result.error.errors.map(e => e.message).join(', ')
+    redirect(`/login?error=validation&message=${encodeURIComponent(errorMessages)}`)
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: result.data.email,
+    password: result.data.password,
+  })
+
+  if (error) {
+    console.log("password-signin-error", error)
+    redirect(`/password?error=auth&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`)
+  }
+
+  revalidatePath('/', 'layout')
+  redirect('/')
+}
+
+export async function signUpWithPassword(formData: FormData) {
+  'use server'
+
+  const supabase = await createClient()
+
+  const result = authWithPasswordSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+
+  if (!result.success) {
+    console.log("validation-error", result.error)
+    const errorMessages = result.error.errors.map(e => e.message).join(', ')
+    redirect(`/signup/password?error=validation&message=${encodeURIComponent(errorMessages)}`)
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email: result.data.email,
+    password: result.data.password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    }
+  })
+
+  if (error) {
+    console.log("password-signup-error", error)
+    redirect(`/signup/password?error=auth&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`)
+  }
+
+  revalidatePath('/', 'layout')
+  // Redirect to a page that informs the user to check their email for verification
+  redirect(`/verify-email?email=${result.data.email}&type=signup`)
 }

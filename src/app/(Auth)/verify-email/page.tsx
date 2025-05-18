@@ -1,10 +1,12 @@
-import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MailIcon, RotateCcw } from "lucide-react";
 
 
 import Link from "next/link";
 import { signInWithMagicLink } from '@/actions/auth';
+import { ArrowLeft, Mail, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
 
 export default async function VerifyEmailPage({
   searchParams,
@@ -15,36 +17,54 @@ export default async function VerifyEmailPage({
   const { email } = await searchParams
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4">
-          <div className="flex justify-center mb-4">
-            <MailIcon className="h-12 w-12" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-center space-y-4">
-            <p className="">Check your email:</p>
-            <p className="">{email}</p>
-            </CardTitle>
-          <CardDescription className="text-center mt-4">
-            We&apos;ve sent you an email with a verification link. Please check your inbox and click the link to verify your account.
+
+        {/* card header */}
+        <CardHeader className="space-y-1">
+        <Link href="/login" className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
+              <ArrowLeft className="h-4 w-4" />
+              back to login
+            </Link>
+          <CardTitle className="text-2xl font-bold text-center">Verify your email</CardTitle>
+          <CardDescription className="text-center">
+            Check your email for a verification link.
           </CardDescription>
         </CardHeader>
-        <CardContent className=" text-center">
-          <p>Didn&apos;t receive an email? Check your spam folder or try signing up again.</p>
+
+        {/* card content */}
+        <CardContent className="">
+        <div className="bg-secondary/50 p-6 rounded-lg mb-6">
+        <div className="flex justify-center mb-4">
+          <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+            <Mail className="h-6 w-6" />
+          </div>
+        </div>
+        <p className="text-center mb-2">We&apos;ve sent a verification link to:</p>
+        <p className="text-center font-medium mb-4">{email}</p>
+        <p className="text-center text-muted-foreground text-sm">
+          Please check your email and click the verification link to continue.
+        </p>
+      </div>
+
+
+        {/* resend verification link button */}
+        <div className="flex justify-center items-center">
+        <Button variant="default" className="" formAction={signInWithMagicLink}>
+          <RotateCcw className="h-4 w-4" />Resend Verification Link 
+        </Button></div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" > <Link href="/login" className="flex items-center gap-2"><ArrowLeft className="w-4 h-4" />Back to login</Link></Button>
-          <form>
-            <Button 
-            variant="secondary" 
-            className="flex items-center gap-2" 
-            type="submit"
-            formAction={signInWithMagicLink}>
-              <RotateCcw className="w-4 h-4 mr-2" />Resend email
-            </Button>
-            <input type="hidden" name="email" value={email} />
-            </form>
+
+        {/* no account sign up link */}
+        <CardFooter className="flex flex-row items-center justify-center">
+          <div className="text-center text-sm text-muted-foreground flex flex-row items-center justify-center gap-2">
+            Need help?{' '}
+            <Link href="/support" className="text-primary underline hover:text-primary/80 transition-colors">
+              Contact support
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </div>
-  );}
+  )
+}

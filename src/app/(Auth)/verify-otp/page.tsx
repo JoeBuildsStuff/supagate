@@ -39,31 +39,50 @@ export default async function VerifyOTPPage({   searchParams,
     redirect('/')
   }
 
+  async function resendOTP() {
+    'use server'
+    console.log("Resend OTP to:", email)
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4">
-          <div className="flex justify-center mb-4">
-            <KeyRound className="h-12 w-12" />
-          </div>
+        <CardHeader className="space-y-1">
+          <Link href="/login" className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
+            <ArrowLeft className="h-4 w-4" />
+            back to login
+          </Link>
           <CardTitle className="text-2xl font-bold text-center">
-            Enter verification code
+            Verify OTP
           </CardTitle>
           <CardDescription className="text-center">
-            We&apos;ve sent a verification code to {email}
+            Enter the code we sent to your email
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="">
+          <div className="flex flex-col gap-4">
+          <div className="bg-secondary/50 p-6 rounded-lg">
+            <div className="flex justify-center mb-4">
+              <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                <KeyRound className="h-6 w-6" />
+              </div>
+            </div>
+            <p className="text-center mb-2">Enter the 6-digit code sent to:</p>
+            <p className="text-center font-medium mb-4">{email}</p>
+            <p className="text-center text-xs text-muted-foreground px-6">
+                Didn&apos;t receive a code? The code will expire in 10 minutes.
+              </p>
+          </div>
           <form>
             <div className="space-y-4">
-              <div className="flex justify-center">
+              <div className="flex justify-center mb-8 mt-4">
                 <InputOTP maxLength={6} name="token">
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
                     <InputOTPSlot index={2} />
                   </InputOTPGroup>
-                  <InputOTPSeparator />
+                  <InputOTPSeparator className="text-border" />
                   <InputOTPGroup>
                     <InputOTPSlot index={3} />
                     <InputOTPSlot index={4} />
@@ -80,13 +99,24 @@ export default async function VerifyOTPPage({   searchParams,
               </Button>
             </div>
           </form>
+          <form action={resendOTP} className="">
+            <Button 
+              type="submit" 
+              variant="outline"
+              className="w-full"
+            >
+              Resend Code
+            </Button>
+          </form>
+          </div>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button variant="ghost">
-            <Link href="/login" className="flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />Back to login
+        <CardFooter className="flex flex-row items-center justify-center">
+          <div className="text-center text-sm text-muted-foreground flex flex-row items-center justify-center gap-2">
+            Need help?{' '}
+            <Link href="/support" className="text-primary underline hover:text-primary/80 transition-colors">
+              Contact support
             </Link>
-          </Button>
+          </div>
         </CardFooter>
       </Card>
     </div>
