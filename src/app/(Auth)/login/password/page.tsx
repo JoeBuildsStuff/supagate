@@ -12,7 +12,8 @@ export default async function PasswordPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { error, message, email } = await searchParams
+  const { error, message, email, next: nextParam } = await searchParams;
+  const next = typeof nextParam === 'string' ? nextParam : null;
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -39,6 +40,7 @@ export default async function PasswordPage({
         <CardContent className="space-y-4">
 
             <form>
+                {next && <input type="hidden" name="next" value={next} />}
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>

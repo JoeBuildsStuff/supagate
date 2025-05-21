@@ -17,7 +17,10 @@ export default async function LoginPage({
     error,
     message,
     email,
-  } = await searchParams
+    next: nextParam,
+  } = await searchParams;
+
+  const next = typeof nextParam === 'string' ? nextParam : null;
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -83,6 +86,7 @@ export default async function LoginPage({
 
           {/* email form */}  
           <form >
+            {next && <input type="hidden" name="next" value={next} />}
             <div className="space-y-4 mb-6 ">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -125,7 +129,7 @@ export default async function LoginPage({
           <span>
             We recomend selecting a passwordless option. If you insist on using a password, {' '}
             <Link
-              href="/login/password"
+              href={next ? `/login/password?next=${encodeURIComponent(next)}` : "/login/password"}
               className="text-primary underline hover:text-primary/80 transition-colors"
             >
               continue here.

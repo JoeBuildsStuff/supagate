@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { CookieOptions, createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
@@ -15,13 +15,17 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // enforce parent-domain scoping
+            const enhancedOptions: CookieOptions = {
+              ...options,
+              domain: '.joe-taylor.me',
+              path: '/',
+              secure: true, // Process.env.NODE_ENV === 'production' for local HTTP
+              sameSite: 'lax',
+            };
+            supabaseResponse.cookies.set(name, value, enhancedOptions);
+          });
         },
       },
     }

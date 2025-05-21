@@ -144,12 +144,17 @@ export async function signInWithPassword(formData: FormData) {
     email: formData.get('email'),
     password: formData.get('password'),
   })
+  const next = formData.get('next') as string | null;
 
   if (!result.success) {
     console.log("validation-error", result.error)
     // Construct a more user-friendly error message
     const errorMessages = result.error.errors.map(e => e.message).join(', ')
-    redirect(`/login?error=validation&message=${encodeURIComponent(errorMessages)}`)
+    let redirectUrl = `/login/password?error=validation&message=${encodeURIComponent(errorMessages)}`;
+    if (next) {
+      redirectUrl += `&next=${encodeURIComponent(next)}`;
+    }
+    redirect(redirectUrl);
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -159,11 +164,19 @@ export async function signInWithPassword(formData: FormData) {
 
   if (error) {
     console.log("password-signin-error", error)
-    redirect(`/login/password?error=auth&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`)
+    let redirectUrl = `/login/password?error=auth&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`;
+    if (next) {
+      redirectUrl += `&next=${encodeURIComponent(next)}`;
+    }
+    redirect(redirectUrl);
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  if (next) {
+    redirect(next);
+  } else {
+    redirect('/'); // Default redirect if next is not present
+  }
 }
 
 export async function signUpWithPassword(formData: FormData) {
