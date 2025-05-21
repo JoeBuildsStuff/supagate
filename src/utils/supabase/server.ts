@@ -21,7 +21,7 @@ export async function createClient() {
                 domain: '.joe-taylor.me',
                 path: '/',
                 secure: true, // Assuming you want to enforce true; adjust if needed for local dev without HTTPS
-                sameSite: 'lax' as 'lax', // Explicitly type as 'lax' or 'strict' or 'none'
+                sameSite: 'lax' as const, // Explicitly type as 'lax' or 'strict' or 'none'
               }
               cookieStore.set(name, value, enhancedOptions)
             })
