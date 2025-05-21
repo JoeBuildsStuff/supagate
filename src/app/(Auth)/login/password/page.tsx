@@ -16,6 +16,7 @@ export default async function PasswordPage({
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
             <Link href="/login" className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
@@ -26,6 +27,14 @@ export default async function PasswordPage({
           <CardDescription className="text-center">
             Sign in to your account
           </CardDescription>
+          {(!error && message) && (
+            <Alert variant={"default"} className="mt-4 border-none text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-500">
+              <AlertTitle className="text-sm font-semibold">Success!</AlertTitle>
+              <AlertDescription className="text-xs text-green-700 dark:text-green-500">
+                {typeof message === 'string' ? decodeURIComponent(message) : 'Action completed successfully.'}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
 
@@ -80,10 +89,8 @@ export default async function PasswordPage({
         </div>
         </CardContent>
 
-
-
-        {error && message && (
-        <CardFooter>
+        {(error && message) && (
+          <CardFooter>
             <Alert variant={"destructive"} className="">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle className="text-sm">{error === "rate_limit" ? "Slow down there!" : "Uh oh!"}</AlertTitle>
@@ -97,7 +104,7 @@ export default async function PasswordPage({
                 )}
               </AlertDescription>
             </Alert>
-        </CardFooter>   
+          </CardFooter>
         )}
       </Card>
 

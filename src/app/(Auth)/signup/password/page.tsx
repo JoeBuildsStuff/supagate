@@ -124,6 +124,7 @@ export default async function SignupPage({
             </Alert>
         </CardFooter>
         )}
+        
       </Card>
     </div>
   );

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { signInWithMagicLink } from "@/actions/auth";
+import { signInWithMagicLink, requestPasswordReset } from "@/actions/auth";
 
 export default async function PasswordPage({
   searchParams,
@@ -45,7 +45,7 @@ export default async function PasswordPage({
                   type="submit" 
                   variant="default"
                   className="flex-1"
-                
+                  formAction={requestPasswordReset}
                 >
                   Reset Password
                 </Button>

@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LogOut, User, Eclipse } from "lucide-react"
+import { LogOut, User, Eclipse, Settings } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "./ui/button"
 import { createClient } from "@/utils/supabase/client"
 
 import { ModeToggleSwitch } from "./mode-toggle-switch"
 import { toast } from "sonner"
+import Link from "next/link"
 
 // Define a type for our user state
 interface AppUser {
@@ -134,6 +135,15 @@ export default function UserNavDropdown() {
           </Button>
 
           {appUser && ( // Only show logout if user is logged in
+          <>
+                      <Button className="w-full text-base justify-between" variant="ghost" asChild>
+              <Link href="/workspace/profile">
+                <div className="flex items-center justify-start gap-2">
+                    <Settings className="w-4 h-4 text-muted-foreground" />
+                    <span className="">Settings</span>
+                </div>
+              </Link>
+            </Button>
             <Button className="w-full text-base justify-between" variant="ghost" onClick={async () => {
               const supabase = createClient();
               const { error } = await supabase.auth.signOut();
@@ -152,6 +162,8 @@ export default function UserNavDropdown() {
                   <span>Log out</span>
                   </div>    
             </Button>
+
+            </>
           )}
         </div>
       </DropdownMenuContent>

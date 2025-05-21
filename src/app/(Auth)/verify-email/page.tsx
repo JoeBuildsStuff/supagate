@@ -59,7 +59,7 @@ export default async function VerifyEmailPage({
         <CardFooter className="flex flex-row items-center justify-center">
           <div className="text-center text-sm text-muted-foreground flex flex-row items-center justify-center gap-2">
             Need help?{' '}
-            <Link href="/support" className="text-primary underline hover:text-primary/80 transition-colors">
+            <Link href="/support" className="text-primary hover:underline hover:text-primary/80 transition-colors">
               Contact support
             </Link>
           </div>
