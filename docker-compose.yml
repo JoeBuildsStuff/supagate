@@ -1,14 +1,8 @@
-version: '3.8'
+name: supagate
 
 services:
   supagate:
-    build:
-      context: .
-      args:
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
-        RESEND_API_KEY: ${RESEND_API_KEY}
+    image: joebuildsstuff/supagate-app:latest
     container_name: supagate_app
     ports:
       - "3000:3000"
@@ -17,9 +11,11 @@ services:
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
       - RESEND_API_KEY=${RESEND_API_KEY}
+    env_file:
+      - .env
+    restart: unless-stopped
     networks:
       - default
-    restart: unless-stopped
 
 networks:
   default: {}
