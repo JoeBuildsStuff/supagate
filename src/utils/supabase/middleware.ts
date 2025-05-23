@@ -16,13 +16,20 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            // enforce parent-domain scoping
+            // Determine if we're in local development
+            const isLocalDev = request.nextUrl.hostname === 'localhost' || 
+                              request.nextUrl.hostname === '127.0.0.1' ||
+                              request.nextUrl.hostname.includes('localhost') ||
+                              process.env.NODE_ENV === 'development'
+
             const enhancedOptions: CookieOptions = {
               ...options,
-              domain: '.joe-taylor.me',
-              path: '/',
-              secure: true, // Process.env.NODE_ENV === 'production' for local HTTP
-              sameSite: 'lax',
+              // Only set domain for production or when using custom domains
+              domain: isLocalDev ? undefined : options.domain,
+              path: options.path || '/',
+              // Only secure in production or when using HTTPS
+              secure: isLocalDev ? false : (options.secure ?? true),
+              sameSite: options.sameSite || 'lax',
             };
             supabaseResponse.cookies.set(name, value, enhancedOptions);
           });
@@ -41,12 +48,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log('From middleware: user:', user)
+
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/signup') &&
+    !request.nextUrl.pathname.startsWith('/verify-') &&
+    !request.nextUrl.pathname.startsWith('/update-password') &&
+    !request.nextUrl.pathname.startsWith('/api') &&
+    !request.nextUrl.pathname.startsWith('/_next')
   ) {
     // no user, potentially respond by redirecting the user to the login page
+    console.log('From middleware: no user, redirecting to login')
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

@@ -161,7 +161,6 @@ export async function signInWithPassword(formData: FormData) {
     email: result.data.email,
     password: result.data.password,
   })
-
   if (error) {
     console.log("password-signin-error", error)
     let redirectUrl = `/login/password?error=auth&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`;

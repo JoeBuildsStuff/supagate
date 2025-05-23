@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { LogOut, User, Eclipse, Settings } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "./ui/button"
 import { createClient } from "@/utils/supabase/client"
+import { useAuth } from "./auth/auth-provider"
 
 import { ModeToggleSwitch } from "./mode-toggle-switch"
 import { toast } from "sonner"
@@ -19,53 +20,14 @@ interface AppUser {
 
 export default function UserNavDropdown() {
   const [open, setOpen] = useState(false)
-  const [appUser, setAppUser] = useState<AppUser | null>(null); // State for Supabase user
-  const [loadingUser, setLoadingUser] = useState(true); // Loading state
+  const { user, loading: loadingUser } = useAuth()
 
-  useEffect(() => {
-    const supabase = createClient();
-    const fetchUser = async () => {
-      setLoadingUser(true);
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error("Error fetching user:", error);
-        setAppUser(null);
-      } else if (user) {
-        setAppUser({
-          email: user.email || null,
-          name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "User",
-          imageUrl: user.user_metadata?.avatar_url || null,
-        });
-      } else {
-        setAppUser(null); // No user logged in
-      }
-      setLoadingUser(false);
-    };
-
-    fetchUser();
-
-    // Listen for auth changes to update user
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const currentUser = session?.user;
-        if (currentUser) {
-          setAppUser({
-            email: currentUser.email || null,
-            name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || "User",
-            imageUrl: currentUser.user_metadata?.avatar_url || null,
-          });
-        } else {
-          setAppUser(null);
-        }
-        setLoadingUser(false);
-      }
-    );
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
+  // Transform Supabase user to AppUser format
+  const appUser: AppUser | null = user ? {
+    email: user.email || null,
+    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "User",
+    imageUrl: user.user_metadata?.avatar_url || null,
+  } : null
 
   // If not loading and no user is found, don't render the component
   if (!loadingUser && !appUser) {
@@ -152,7 +114,7 @@ export default function UserNavDropdown() {
                 // Potentially show a toast notification here using a library like sonner
                 toast.error("Error signing out", { description: error.message });
               } else {
-                setAppUser(null); // Clear user state
+                // The auth provider will handle updating the user state
                 // Redirect to the root page after sign out
                 window.location.href = '/';
               }

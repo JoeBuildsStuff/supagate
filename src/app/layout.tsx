@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner"
 import MainNavHeader from "@/components/main-nav-header";
+import { AuthProvider } from "@/components/auth/auth-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,10 +27,12 @@ return (
         enableSystem
         disableTransitionOnChange
       >
-        <div className="flex flex-col h-screen mx-2 mt-2">
-          <MainNavHeader />
-          {children}
-        </div>
+        <AuthProvider>
+          <div className="flex flex-col h-screen mx-2 mt-2">
+            <MainNavHeader />
+            {children}
+          </div>
+        </AuthProvider>
         <Toaster />
       </ThemeProvider>
     </body>

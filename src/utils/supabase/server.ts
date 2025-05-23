@@ -15,15 +15,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              // Override to ensure domain scoping
-              const enhancedOptions = {
-                ...options,
-                domain: '.joe-taylor.me',
-                path: '/',
-                secure: true, // Assuming you want to enforce true; adjust if needed for local dev without HTTPS
-                sameSite: 'lax' as const, // Explicitly type as 'lax' or 'strict' or 'none'
-              }
-              cookieStore.set(name, value, enhancedOptions)
+              cookieStore.set(name, value, options)
             })
           } catch {
             // The `setAll` method was called from a Server Component.
