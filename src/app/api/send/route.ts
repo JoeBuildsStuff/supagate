@@ -1,10 +1,11 @@
 import SignupConfirmation from '@/components/email/signup-confirmation';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST() {
   try {
+    // Initialize Resend only when the API is called, not during build
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
     const { data, error } = await resend.emails.send({
       from: 'No-Reply <no-reply@joe-taylor.me>',
       to: ['josephataylor@gmail.com'],

@@ -19,17 +19,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables from build args
-# ARG NEXT_PUBLIC_SUPABASE_URL # Removed
-# ARG NEXT_PUBLIC_SUPABASE_ANON_KEY # Removed
-# ARG NEXT_PUBLIC_SITE_URL # Removed
-# ARG RESEND_API_KEY # Removed
-
-# ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL # Removed
-# ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY # Removed
-# ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL # Removed
-# ENV RESEND_API_KEY=$RESEND_API_KEY # Removed
-
 # Install pnpm globally in the builder stage as well
 RUN npm install -g pnpm
 

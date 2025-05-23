@@ -1,9 +1,11 @@
-name: supagate
+name: supagate-dev
 
 services:
   supagate:
-    image: joebuildsstuff/supagate-app:latest 
-    container_name: supagate_app
+    build:              # 👈 Build from source
+      context: .
+      dockerfile: Dockerfile
+      target: production
     ports:
       - "3000:3000"
     environment:
@@ -15,6 +17,3 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-
-networks:
-  default: {}
