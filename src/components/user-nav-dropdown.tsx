@@ -1,50 +1,56 @@
 "use client"
 
 import { useState } from "react"
-import { LogOut, User, Eclipse, Settings } from "lucide-react"
+import type { User } from "@supabase/supabase-js"
+import { LogOut, User as UserIcon, Eclipse, Settings } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "./ui/button"
-import { createClient } from "@/utils/supabase/client"
 import { useAuth } from "./auth/auth-provider"
 
 import { ModeToggleSwitch } from "./mode-toggle-switch"
-import { toast } from "sonner"
+import { signOut } from "@/actions/auth"
 import Link from "next/link"
 
-// Define a type for our user state
-interface AppUser {
-  name: string | null;
-  email: string | null;
-  imageUrl?: string | null;
+export interface NavUser {
+  name: string | null
+  email: string | null
+  imageUrl?: string | null
 }
 
-export default function UserNavDropdown() {
-  const [open, setOpen] = useState(false)
-  const { user, loading: loadingUser } = useAuth()
+interface UserNavDropdownProps {
+  user: NavUser
+}
 
-  // Transform Supabase user to AppUser format
-  const appUser: AppUser | null = user ? {
+function userFromAuth(user: User): NavUser {
+  return {
     email: user.email || null,
-    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "User",
+    name:
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0] ||
+      "User",
     imageUrl: user.user_metadata?.avatar_url || null,
-  } : null
-
-  // If not loading and no user is found, don't render the component
-  if (!loadingUser && !appUser) {
-    return null;
   }
+}
+
+export default function UserNavDropdown({ user: serverUser }: UserNavDropdownProps) {
+  const [open, setOpen] = useState(false)
+  const { user: clientUser, loading: loadingUser } = useAuth()
+
+  // Server session is authoritative; client auth supplements live updates when available.
+  const appUser = clientUser ? userFromAuth(clientUser) : serverUser
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button className="rounded-full w-10 h-10 p-0 overflow-hidden" variant="outline">
-          {loadingUser ? (
-            <User className="w-5 h-5" />
-          ) : appUser?.imageUrl ? (
+          {loadingUser && !serverUser ? (
+            <UserIcon className="w-5 h-5" />
+          ) : appUser.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={appUser.imageUrl} alt={appUser.name || "User avatar"} className="h-full w-full object-cover" />
           ) : (
-            <User className="w-5 h-5" />
+            <UserIcon className="w-5 h-5" />
           )}
           <span className="sr-only">Open user menu</span>
         </Button>
@@ -57,28 +63,26 @@ export default function UserNavDropdown() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 overflow-hidden rounded-full bg-[#3982b8] flex items-center justify-center">
-                  {loadingUser ? (
-                    <User className="text-white h-8 w-8 animate-pulse" />
-                  ) : appUser?.imageUrl ? (
+                  {loadingUser && !serverUser ? (
+                    <UserIcon className="text-white h-8 w-8 animate-pulse" />
+                  ) : appUser.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={appUser.imageUrl} alt={appUser.name || "User avatar"} className="h-full w-full object-cover" />
                   ) : (
-                    <User className="text-white h-8 w-8" />
+                    <UserIcon className="text-white h-8 w-8" />
                   )}
                 </div>
                 <div>
-                  {loadingUser ? (
+                  {loadingUser && !serverUser ? (
                     <>
                       <p className="text-lg font-medium h-6 bg-gray-300 rounded w-32 animate-pulse"></p>
                       <p className="text-sm text-muted-foreground h-4 bg-gray-200 rounded w-40 mt-1 animate-pulse"></p>
                     </>
-                  ) : appUser ? (
+                  ) : (
                     <>
                       <p className="text-lg font-medium">{appUser.name}</p>
                       <p className="text-sm text-muted-foreground">{appUser.email}</p>
                     </>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Not logged in</p>
                   )}
                 </div>
               </div>
@@ -96,9 +100,8 @@ export default function UserNavDropdown() {
               <ModeToggleSwitch />
           </Button>
 
-          {appUser && ( // Only show logout if user is logged in
           <>
-                      <Button className="w-full text-base justify-between" variant="ghost" asChild>
+            <Button className="w-full text-base justify-between" variant="ghost" asChild>
               <Link href="/workspace/profile">
                 <div className="flex items-center justify-start gap-2">
                     <Settings className="w-4 h-4 text-muted-foreground" />
@@ -106,27 +109,15 @@ export default function UserNavDropdown() {
                 </div>
               </Link>
             </Button>
-            <Button className="w-full text-base justify-between" variant="ghost" onClick={async () => {
-              const supabase = createClient();
-              const { error } = await supabase.auth.signOut();
-              if (error) {
-                console.error("Error signing out:", error);
-                // Potentially show a toast notification here using a library like sonner
-                toast.error("Error signing out", { description: error.message });
-              } else {
-                // The auth provider will handle updating the user state
-                // Redirect to the root page after sign out
-                window.location.href = '/';
-              }
-            }}>
+            <form action={signOut}>
+            <Button type="submit" className="w-full text-base justify-between" variant="ghost">
                   <div className="flex items-center justify-start gap-2">
                   <LogOut className="w-4 h-4 text-muted-foreground" />
                   <span>Log out</span>
                   </div>    
             </Button>
-
-            </>
-          )}
+            </form>
+          </>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

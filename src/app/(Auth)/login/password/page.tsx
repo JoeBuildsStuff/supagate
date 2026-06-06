@@ -20,7 +20,7 @@ export default async function PasswordPage({
 
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-            <Link href="/login" className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
+            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
               <ArrowLeft className="h-4 w-4" />
               back to passwordless options
             </Link>
@@ -73,7 +73,7 @@ export default async function PasswordPage({
           <AlertDescription className="pt-2 space-y-2">
           <span>
             We recomend using a <Link
-              href="/login"
+              href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
               className="text-primary underline hover:text-primary/80 transition-colors"
             >
               passwordless option.

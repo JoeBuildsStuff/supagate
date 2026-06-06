@@ -1,6 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { formatBrowserCookie } from '@/utils/cookie-domain'
 
 export function createClient() {
+  const hostname =
+    typeof window !== 'undefined' ? window.location.hostname : undefined
+
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -10,6 +14,7 @@ export function createClient() {
           return document.cookie
             .split(';')
             .map(c => c.trim())
+            .filter(Boolean)
             .map(c => {
               const [name, ...v] = c.split('=')
               return { name, value: v.join('=') }
@@ -17,9 +22,12 @@ export function createClient() {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            document.cookie = `${name}=${value}; path=${options?.path || '/'}; ${
-              options?.maxAge ? `max-age=${options.maxAge}` : ''
-            }; ${options?.sameSite ? `samesite=${options.sameSite}` : 'samesite=lax'}`
+            document.cookie = formatBrowserCookie(
+              name,
+              value,
+              options ?? {},
+              hostname
+            )
           })
         },
       },

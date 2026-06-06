@@ -9,6 +9,7 @@ import {
 import { ArrowLeft, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@/utils/supabase/server';
+import { sanitizeRedirectTarget } from '@/utils/safe-redirect';
 import { redirect } from 'next/navigation';
 
 
@@ -17,13 +18,15 @@ export default async function VerifyOTPPage({   searchParams,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
 
-  const { email } = await searchParams
+  const { email, next: nextParam } = await searchParams
+  const next = typeof nextParam === 'string' ? nextParam : null
 
   async function verifyOTP(formData: FormData) {
     'use server'
     
     const supabase = await createClient()
     const token = formData.get('token') as string
+    const next = formData.get('next') as string | null
     
     const { error } = await supabase.auth.verifyOtp({
       email: email as string,
@@ -36,7 +39,7 @@ export default async function VerifyOTPPage({   searchParams,
       redirect('/error')
     }
 
-    redirect('/')
+    redirect(sanitizeRedirectTarget(next))
   }
 
   async function resendOTP() {
@@ -48,7 +51,7 @@ export default async function VerifyOTPPage({   searchParams,
     <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <Link href="/login" className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
+          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-sm text-muted-foreground flex flex-row items-center gap-2 mb-4">
             <ArrowLeft className="h-4 w-4" />
             back to login
           </Link>
@@ -74,6 +77,7 @@ export default async function VerifyOTPPage({   searchParams,
               </p>
           </div>
           <form>
+            {next && <input type="hidden" name="next" value={next} />}
             <div className="space-y-4">
               <div className="flex justify-center mb-8 mt-4">
                 <InputOTP maxLength={6} name="token">

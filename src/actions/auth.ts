@@ -5,6 +5,13 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
 import { createClient } from '@/utils/supabase/server'
+import { clearSupabaseAuthCookies } from '@/utils/supabase/cookie-clear.server'
+import { setPostAuthRedirect } from '@/utils/post-auth-redirect.server'
+import {
+  appendNextParam,
+  buildAuthCallbackUrl,
+  sanitizeRedirectTarget,
+} from '@/utils/safe-redirect'
 
 // Update schema to only include email
 const authSchema = z.object({
@@ -22,6 +29,7 @@ export async function signInWithMagicLink(formData: FormData) {
   'use server'
   
   const supabase = await createClient()
+  const next = formData.get('next') as string | null
 
   // Parse and validate the email
   const result = authSchema.safeParse({
@@ -30,38 +38,44 @@ export async function signInWithMagicLink(formData: FormData) {
 
   if (!result.success) {
     console.log("validation-error", result.error)
-    redirect('/login?error=validation&message=Invalid email format.')
+    redirect(appendNextParam('/login?error=validation&message=Invalid email format.', next))
   }
+
+  await setPostAuthRedirect(next)
 
   const { error } = await supabase.auth.signInWithOtp({
     email: result.data.email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+      emailRedirectTo: buildAuthCallbackUrl(),
     },
   })
 
   if (error) {
     console.log("magic-link-error", error)
     if (error.code === 'over_email_send_rate_limit' && error.message) {
-      redirect(`/login?error=rate_limit&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`)
+      redirect(appendNextParam(`/login?error=rate_limit&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`, next))
     }
     redirect('/error')
   }
 
   revalidatePath('/', 'layout')
-  redirect(`/verify-email?email=${result.data.email}`)
+  await setPostAuthRedirect(next)
+  redirect(appendNextParam(`/verify-email?email=${encodeURIComponent(result.data.email)}`, next))
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData: FormData) {
   'use server'
 
   const supabase = await createClient()
+  const next = formData.get('next') as string | null
+
+  await setPostAuthRedirect(next)
   
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+      redirectTo: buildAuthCallbackUrl(),
     }
   })
 
@@ -77,15 +91,18 @@ export async function signInWithGoogle() {
   revalidatePath('/', 'layout')
 }
 
-export async function signInWithGithub() {
+export async function signInWithGithub(formData: FormData) {
   'use server'
   
   const supabase = await createClient()
+  const next = formData.get('next') as string | null
+
+  await setPostAuthRedirect(next)
   
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+      redirectTo: buildAuthCallbackUrl(),
     }
   })
 
@@ -106,6 +123,7 @@ export async function signInWithOTP(formData: FormData) {
   'use server'
   
   const supabase = await createClient()
+  const next = formData.get('next') as string | null
 
   const result = authSchema.safeParse({
     email: formData.get('email'),
@@ -113,7 +131,7 @@ export async function signInWithOTP(formData: FormData) {
 
   if (!result.success) {
     console.log("validation-error", result.error)
-    redirect('/login?error=validation&message=Invalid email format.')
+    redirect(appendNextParam('/login?error=validation&message=Invalid email format.', next))
   }
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -126,13 +144,14 @@ export async function signInWithOTP(formData: FormData) {
   if (error) {
     console.log("otp-error", error)
     if (error.code === 'over_email_send_rate_limit' && error.message) {
-      redirect(`/login?error=rate_limit&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`)
+      redirect(appendNextParam(`/login?error=rate_limit&message=${encodeURIComponent(error.message)}&email=${encodeURIComponent(result.data.email)}`, next))
     }
     redirect('/error')
   }
 
+  await setPostAuthRedirect(next)
   revalidatePath('/', 'layout')
-  redirect(`/verify-otp?email=${result.data.email}`)
+  redirect(appendNextParam(`/verify-otp?email=${encodeURIComponent(result.data.email)}`, next))
 }
 
 export async function signInWithPassword(formData: FormData) {
@@ -171,11 +190,7 @@ export async function signInWithPassword(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  if (next) {
-    redirect(next);
-  } else {
-    redirect('/'); // Default redirect if next is not present
-  }
+  redirect(sanitizeRedirectTarget(next))
 }
 
 export async function signUpWithPassword(formData: FormData) {
@@ -284,4 +299,19 @@ export async function updateUserPassword(formData: FormData) {
   // It might be good to revalidate path if user details are displayed somewhere that might change upon password update, though less common.
   // revalidatePath('/', 'layout') 
   redirect('/login/password?message=Password updated successfully. Please sign in.')
+}
+
+export async function signOut() {
+  'use server'
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signOut({ scope: 'global' })
+
+  if (error && !/session missing/i.test(error.message)) {
+    console.error('signOut error:', error)
+  }
+
+  await clearSupabaseAuthCookies()
+  revalidatePath('/', 'layout')
+  redirect('/login')
 }

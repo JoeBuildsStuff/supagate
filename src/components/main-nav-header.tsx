@@ -1,11 +1,24 @@
 import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import UserNavDropdown from "./user-nav-dropdown";
 
 import { createClient } from "@/utils/supabase/server";
 
+function toNavUser(user: User) {
+  return {
+    email: user.email ?? null,
+    name:
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0] ||
+      "User",
+    imageUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+  }
+}
+
 export default async function MainNavHeader() {
-  const supabase = createClient();
-  const { data: { user } } = await (await supabase).auth.getUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <div className="flex items-center justify-between">
@@ -27,9 +40,7 @@ export default async function MainNavHeader() {
             </svg>
           </div>
         </Link>
-        {user && (
-          <UserNavDropdown />
-        )}
+        {user && <UserNavDropdown user={toNavUser(user)} />}
       </div>
     </div>
   )
