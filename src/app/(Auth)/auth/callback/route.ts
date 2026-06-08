@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server'
 import { consumePostAuthRedirect } from '@/utils/post-auth-redirect.server'
 import { sanitizeRedirectTarget, toRedirectUrl } from '@/utils/safe-redirect'
 import { getSiteUrl } from '@/utils/site-url'
+import { ensureCurrentSupagateMember } from '@/lib/supagate/policy'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
       // Optionally, redirect to a more specific error page or include error info
       return NextResponse.redirect(new URL('/error?source=code_exchange', siteUrl))
     }
+    await ensureCurrentSupagateMember(() => supabase.auth.getUser())
     return NextResponse.redirect(toRedirectUrl(next, siteUrl))
   }
 
@@ -40,6 +42,7 @@ export async function GET(request: Request) {
       console.error(`${type} verification error:`, error)
       return NextResponse.redirect(new URL('/error?source=otp_verify', siteUrl))
     }
+    await ensureCurrentSupagateMember(() => supabase.auth.getUser())
     return NextResponse.redirect(toRedirectUrl(next, siteUrl))
   }
 

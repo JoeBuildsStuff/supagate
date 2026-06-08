@@ -12,6 +12,7 @@ import {
   buildAuthCallbackUrl,
   sanitizeRedirectTarget,
 } from '@/utils/safe-redirect'
+import { ensureCurrentSupagateMember } from '@/lib/supagate/policy'
 
 // Update schema to only include email
 const authSchema = z.object({
@@ -189,6 +190,7 @@ export async function signInWithPassword(formData: FormData) {
     redirect(redirectUrl);
   }
 
+  await ensureCurrentSupagateMember(() => supabase.auth.getUser())
   revalidatePath('/', 'layout')
   redirect(sanitizeRedirectTarget(next))
 }

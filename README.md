@@ -13,7 +13,8 @@ and health-check tokens are injected at runtime.
 
 - Supabase email/password auth flows
 - Cross-subdomain session cookies for homelab services
-- `/api/auth/verify` for Traefik forward-auth
+- `/api/auth/verify` for Traefik forward-auth with host-level app policy
+- `/workspace/admin` for app, member, group, and audit management
 - `/api/health` for authenticated health checks
 - Optional Resend email integration
 - Docker image publishing through GitHub Actions
@@ -50,10 +51,16 @@ Start from [.env.example](./.env.example). The required values are:
 - `NEXT_PUBLIC_SITE_URL`
 - `RESEND_API_KEY`
 - `HEALTH_CHECK_TOKEN`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPAGATE_ADMIN_EMAILS`
 
 For production use, Supagate can infer the parent cookie domain from
 `NEXT_PUBLIC_SITE_URL`. Set `COOKIE_DOMAIN=.example.com` only if you want to
 override that inference.
+
+Apply the SQL migrations in `supabase/migrations` before using the admin UI or
+forward-auth policy layer. Supagate stores access policy in the `supagate`
+schema and uses a server-only Supabase service role key to read/write it.
 
 ## Deployment Summary
 

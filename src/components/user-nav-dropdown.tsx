@@ -102,10 +102,10 @@ export default function UserNavDropdown({ user: serverUser }: UserNavDropdownPro
 
           <>
             <Button className="w-full text-base justify-between" variant="ghost" asChild>
-              <Link href="/workspace/profile">
+              <Link href="/workspace">
                 <div className="flex items-center justify-start gap-2">
                     <Settings className="w-4 h-4 text-muted-foreground" />
-                    <span className="">Settings</span>
+                    <span className="">Workspace</span>
                 </div>
               </Link>
             </Button>

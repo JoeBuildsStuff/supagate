@@ -54,6 +54,8 @@ services:
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - HEALTH_CHECK_TOKEN=${HEALTH_CHECK_TOKEN}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPAGATE_ADMIN_EMAILS=${SUPAGATE_ADMIN_EMAILS}
 ```
 
 For a public deployment, put this behind HTTPS and do not expose unauthenticated
@@ -71,10 +73,55 @@ Use `.env.example` as the template.
 | `COOKIE_DOMAIN` | Optional parent cookie domain, e.g. `.example.com`, for cross-subdomain sessions. |
 | `RESEND_API_KEY` | Server-side Resend key for email sending. |
 | `HEALTH_CHECK_TOKEN` | Bearer token for protected health-check requests. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase key used by Supagate admin/policy code. Never expose this in browser code. |
+| `SUPAGATE_ADMIN_EMAILS` | Comma-separated email allowlist for bootstrapping Supagate admins on login. |
 
 `NEXT_PUBLIC_*` values are not secret. They are intentionally visible to
 browsers and must be supplied at image build time. Runtime values should match
 the values used to build the image.
+
+Apply the Supabase migrations in `supabase/migrations` before enabling
+forward-auth enforcement. The server-side Supabase client reads and writes the
+`supagate` schema with the service role key; browser clients must not receive
+service role credentials. In Supabase API settings, include `supagate` in the
+exposed schemas list so server-side PostgREST calls can reach it; the migrations
+revoke `anon` and `authenticated` access and grant only `service_role`.
+
+If Supabase still returns `PGRST106` and says `supagate` is not one of the
+allowed schemas even after the dashboard shows it as exposed, check for a stale
+PostgREST role override:
+
+```sql
+select r.rolname, s.setconfig
+from pg_db_role_setting s
+left join pg_roles r on r.oid = s.setrole
+where array_to_string(s.setconfig, ',') ilike '%pgrst.db_schemas%';
+```
+
+Reset the stale override and reload PostgREST:
+
+```sql
+alter role authenticator reset pgrst.db_schemas;
+notify pgrst, 'reload config';
+notify pgrst, 'reload schema';
+```
+
+This is captured in migration
+`20260607233000_reset_stale_pgrst_schema_override.sql`.
+
+## Admin UI
+
+After migrations and env vars are in place, sign in with an email listed in
+`SUPAGATE_ADMIN_EMAILS` and open:
+
+```text
+/workspace/admin
+```
+
+Supagate auto-creates a member row for signed-in users. Emails in
+`SUPAGATE_ADMIN_EMAILS` are bootstrapped as `admin`; all other new users are
+created as active `member` users and can access only apps marked `universal`
+until they receive direct or group access to restricted apps.
 
 ## GitHub Actions Setup
 
