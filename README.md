@@ -25,6 +25,8 @@ and health-check tokens are injected at runtime.
   deployment strategy.
 - [Production deployment guide](./docs/production-deployment.md): a reusable
   Compose, reverse-proxy, and image-update pattern.
+- [Restricted access denial UX](./docs/restricted-access-denial-ux.md): problem
+  statement and recommended browser experience for authenticated access denial.
 
 ## Local Development
 

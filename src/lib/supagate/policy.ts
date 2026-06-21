@@ -165,6 +165,54 @@ export async function logSupagateAuditEvent(input: {
   }
 }
 
+/**
+ * Whether a member can reach a restricted app via a direct grant or group
+ * membership. Universal apps are always accessible to active members and are
+ * reported as accessible here too. Mirrors the access logic inside
+ * `decideForwardAuthAccess`; kept as a shared helper so the access-denied page
+ * can re-verify denial without duplicating the check.
+ */
+export async function memberHasAppAccess(
+  member: SupagateMember,
+  app: SupagateApp
+): Promise<boolean> {
+  if (app.access_mode === 'universal') return true
+
+  const db = supagateSchema()
+  const [{ data: directAccess, error: directError }, { data: memberGroups, error: groupsError }] =
+    await Promise.all([
+      db
+        .from('app_user_access')
+        .select('user_id')
+        .eq('app_id', app.id)
+        .eq('user_id', member.user_id)
+        .maybeSingle(),
+      db.from('group_members').select('group_id').eq('user_id', member.user_id),
+    ])
+
+  if (directError) throw directError
+  if (groupsError) throw groupsError
+
+  if (directAccess) return true
+
+  const groupIds = (memberGroups ?? []).map(row => row.group_id as string)
+
+  if (groupIds.length > 0) {
+    const { data: groupAccess, error: groupAccessError } = await db
+      .from('app_group_access')
+      .select('group_id')
+      .eq('app_id', app.id)
+      .in('group_id', groupIds)
+      .limit(1)
+      .maybeSingle()
+
+    if (groupAccessError) throw groupAccessError
+    if (groupAccess) return true
+  }
+
+  return false
+}
+
 export async function decideForwardAuthAccess(
   request: NextRequest,
   user: User
@@ -217,41 +265,8 @@ export async function decideForwardAuthAccess(
     }
   }
 
-  if (supagateApp.access_mode === 'universal') {
+  if (await memberHasAppAccess(member, supagateApp)) {
     return { allowed: true, member, app: supagateApp }
-  }
-
-  const [{ data: directAccess, error: directError }, { data: memberGroups, error: groupsError }] =
-    await Promise.all([
-      db
-        .from('app_user_access')
-        .select('user_id')
-        .eq('app_id', supagateApp.id)
-        .eq('user_id', member.user_id)
-        .maybeSingle(),
-      db.from('group_members').select('group_id').eq('user_id', member.user_id),
-    ])
-
-  if (directError) throw directError
-  if (groupsError) throw groupsError
-
-  if (directAccess) {
-    return { allowed: true, member, app: supagateApp }
-  }
-
-  const groupIds = (memberGroups ?? []).map(row => row.group_id as string)
-
-  if (groupIds.length > 0) {
-    const { data: groupAccess, error: groupAccessError } = await db
-      .from('app_group_access')
-      .select('group_id')
-      .eq('app_id', supagateApp.id)
-      .in('group_id', groupIds)
-      .limit(1)
-      .maybeSingle()
-
-    if (groupAccessError) throw groupAccessError
-    if (groupAccess) return { allowed: true, member, app: supagateApp }
   }
 
   return {

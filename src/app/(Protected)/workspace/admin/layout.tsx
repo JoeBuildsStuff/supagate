@@ -2,8 +2,12 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 
-import { getSupagateAdminAccess } from '@/lib/supagate/admin-data'
+import {
+  countPendingSupagateAccessRequests,
+  getSupagateAdminAccess,
+} from '@/lib/supagate/admin-data'
 import { isSupagateAdminConfigured } from '@/lib/supagate/admin-client'
+import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SupagateAdminDenied, SupagateSetupRequired } from './setup-required'
 
@@ -12,6 +16,7 @@ const adminNavItems = [
   { href: '/workspace/admin/apps', label: 'Apps' },
   { href: '/workspace/admin/members', label: 'Members' },
   { href: '/workspace/admin/groups', label: 'Groups' },
+  { href: '/workspace/admin/requests', label: 'Requests' },
   { href: '/workspace/admin/audit', label: 'Audit' },
 ]
 
@@ -37,6 +42,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     )
   }
 
+  const pendingRequests = await countPendingSupagateAccessRequests()
+
   return (
     <div className="space-y-6 p-10 pb-16">
       <div className="space-y-1">
@@ -53,9 +60,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+                className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.href === '/workspace/admin/requests' && pendingRequests > 0 && (
+                  <Badge variant="default">{pendingRequests}</Badge>
+                )}
               </Link>
             ))}
           </nav>

@@ -47,3 +47,28 @@ export interface SupagateAppAccessSnapshot {
   groupIds: string[]
 }
 
+export type SupagateAccessRequestStatus =
+  | 'pending'
+  | 'approved'
+  | 'denied'
+  | 'cancelled'
+
+export interface SupagateAccessRequest {
+  id: string
+  app_id: string
+  user_id: string
+  status: SupagateAccessRequestStatus
+  note: string | null
+  decided_by: string | null
+  decided_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+/** Access request enriched with app + member display fields for admin/UX views. */
+export interface SupagateAccessRequestView extends SupagateAccessRequest {
+  app_name: string | null
+  app_host: string | null
+  member_email: string | null
+}
+
