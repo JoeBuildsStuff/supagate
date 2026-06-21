@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { AlertCircle, Ban, ShieldQuestion } from 'lucide-react'
+import { AlertCircle, Ban, ClockFading, Lock } from 'lucide-react'
 
 import { createClient } from '@/utils/supabase/server'
 import { supagateSchema } from '@/lib/supagate/admin-client'
@@ -21,7 +21,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 
 type DenialReason =
   | 'restricted_app'
@@ -125,104 +124,151 @@ export default async function AccessDeniedPage({
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
-        {reason === 'restricted_app' && (
-          <>
-            <CardHeader className="space-y-1">
-              <Badge variant="secondary" className="w-fit">
-                <ShieldQuestion className="mr-1 h-3.5 w-3.5" />
-                Restricted application
-              </Badge>
-              <CardTitle className="text-2xl font-bold">Access required</CardTitle>
-              <CardDescription>
-                You&apos;re signed in as{' '}
-                <span className="font-medium text-foreground">{member.email}</span>, but
-                you don&apos;t have access to{' '}
-                <span className="font-medium text-foreground">
-                  {app?.name ?? 'this application'}
-                </span>{' '}
-                yet.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Your sign-in succeeded — this isn&apos;t a login problem. This app is
-                restricted and an administrator hasn&apos;t granted you access. You can
-                request access below.
-              </p>
-              {app &&
-                (pendingRequestId ? (
-                  <div className="space-y-2 rounded-md border bg-secondary/40 p-3">
-                    <p className="text-sm font-medium">Access request pending</p>
-                    <p className="text-sm text-muted-foreground">
-                      An administrator will review your request. You&apos;ll get access
-                      once it&apos;s approved.
+        {reason === 'restricted_app' &&
+          (pendingRequestId ? (
+            <>
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl font-bold text-center">
+                  Request submitted
+                </CardTitle>
+                <CardDescription className="text-center">
+                  Your request to access{' '}
+                  <span className="font-medium text-foreground">
+                    {app?.name ?? 'this application'}
+                  </span>{' '}
+                  is now waiting for an administrator&apos;s approval.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4">
+                  {/* identity / target block — styled like verify-otp */}
+                  <div className="bg-secondary/50 p-6 rounded-lg">
+                    <div className="flex justify-center mb-4">
+                      <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                        <ClockFading className="h-6 w-6" />
+                      </div>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground mb-1">
+                      Requested as:
                     </p>
-                    <form action={cancelSupagateAccessRequest}>
-                      <input type="hidden" name="id" value={pendingRequestId} />
-                      <Button type="submit" variant="ghost" size="sm">
-                        Cancel request
-                      </Button>
-                    </form>
+                    <p className="text-center font-medium mb-4">{member.email}</p>
+                    <p className="text-center text-sm text-muted-foreground mb-1">
+                      For access to:
+                    </p>
+                    <p className="text-center font-medium">
+                      {app?.name ?? 'this application'}
+                    </p>
                   </div>
-                ) : (
-                  <form action={requestSupagateAppAccess}>
-                    <input type="hidden" name="app_id" value={app.id} />
-                    <Button type="submit" className="w-full">
-                      Request access
+
+                  <form action={cancelSupagateAccessRequest}>
+                    <input type="hidden" name="id" value={pendingRequestId} />
+                    <Button type="submit" variant="secondary" className="w-full">
+                      Cancel request
                     </Button>
                   </form>
-                ))}
-            </CardContent>
-            <CardFooter>{recovery}</CardFooter>
-          </>
-        )}
+                </div>
+              </CardContent>
+              <CardFooter>{recovery}</CardFooter>
+            </>
+          ) : (
+            <>
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl font-bold text-center">
+                  Access required
+                </CardTitle>
+                <CardDescription className="text-center">
+                  This app is restricted and an administrator hasn&apos;t granted
+                  you access yet.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4">
+                  {/* identity / target block — styled like verify-otp */}
+                  <div className="bg-secondary/50 p-6 rounded-lg">
+                    <div className="flex justify-center mb-4">
+                      <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                        <Lock className="h-6 w-6" />
+                      </div>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground mb-1">
+                      Signed in as:
+                    </p>
+                    <p className="text-center font-medium mb-4">{member.email}</p>
+                    <p className="text-center text-sm text-muted-foreground mb-1">
+                      Attempting to access:
+                    </p>
+                    <p className="text-center font-medium">
+                      {app?.name ?? 'this application'}
+                    </p>
+                  </div>
+
+                  {app && (
+                    <form action={requestSupagateAppAccess}>
+                      <input type="hidden" name="app_id" value={app.id} />
+                      <Button type="submit" className="w-full">
+                        Request access
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter>{recovery}</CardFooter>
+            </>
+          ))}
 
         {reason === 'disabled_member' && (
           <>
             <CardHeader className="space-y-1">
-              <Badge variant="destructive" className="w-fit">
-                <Ban className="mr-1 h-3.5 w-3.5" />
+              <CardTitle className="text-2xl font-bold text-center">
                 Account disabled
-              </Badge>
-              <CardTitle className="text-2xl font-bold">Account disabled</CardTitle>
-              <CardDescription>
-                The account{' '}
-                <span className="font-medium text-foreground">{member.email}</span> is
-                currently disabled.
+              </CardTitle>
+              <CardDescription className="text-center">
+                Your account has been disabled by an administrator.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                You won&apos;t be able to access protected applications while your account
-                is disabled. Please contact an administrator if you believe this is a
-                mistake.
-              </p>
+              <div className="flex flex-col gap-4">
+                <div className="bg-secondary/50 p-6 rounded-lg">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                      <Ban className="h-6 w-6" />
+                    </div>
+                  </div>
+                  <p className="text-center text-sm text-muted-foreground mb-1">
+                    Signed in as:
+                  </p>
+                  <p className="text-center font-medium">{member.email}</p>
+                </div>
+                <p className="text-center text-sm text-muted-foreground">
+                  Contact an administrator if you believe this is a mistake.
+                </p>
+              </div>
             </CardContent>
-            <CardFooter>{recovery}</CardFooter>
           </>
         )}
 
         {(reason === 'unknown_host' || reason === 'missing_host') && (
           <>
             <CardHeader className="space-y-1">
-              <Badge variant="secondary" className="w-fit">
-                <AlertCircle className="mr-1 h-3.5 w-3.5" />
-                Unavailable
-              </Badge>
-              <CardTitle className="text-2xl font-bold">
-                This page isn&apos;t available
+              <CardTitle className="text-2xl font-bold text-center">
+                Page not found
               </CardTitle>
-              <CardDescription>
-                We couldn&apos;t route this request to a known application.
+              <CardDescription className="text-center">
+                This address isn&apos;t configured for access through this gateway.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                The address you tried to reach isn&apos;t configured for access through
-                this gateway. If you think it should be, contact an administrator.
-              </p>
+              <div className="bg-secondary/50 p-6 rounded-lg">
+                <div className="flex justify-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                </div>
+                <p className="text-center text-sm text-muted-foreground">
+                  If you think it should be accessible, contact an administrator.
+                </p>
+              </div>
             </CardContent>
-            <CardFooter>{recovery}</CardFooter>
           </>
         )}
       </Card>
